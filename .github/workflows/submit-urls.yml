@@ -11,15 +11,15 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         persist-credentials: false
         fetch-depth: 0
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
-        node-version: '14'
+        node-version: '20'
 
     - name: Install dependencies
       run: npm install
@@ -32,7 +32,7 @@ jobs:
 
     - name: Modify last update
       run: |
-        d=`date '+%Y-%m-%dT%H:%M:%SZ'`
+        d=$(date '+%Y-%m-%dT%H:%M:%SZ')
         echo $d > LAST_UPDATED
 
     - name: Trust my dir
@@ -51,7 +51,7 @@ jobs:
         arr[5]="feat: 🙈 auto commit"
         arr[6]="feat: 🐐 auto commit"
         arr[7]="feat: 🚀 auto commit"
-        rand=$[$RANDOM % ${#arr[@]}]
+        rand=$((RANDOM % ${#arr[@]}))
         git commit -m "${arr[$rand]}"
 
     - name: GitHub Push
