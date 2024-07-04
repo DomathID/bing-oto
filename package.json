@@ -1,0 +1,25 @@
+{
+  "name": "bing-url-submitter",
+  "version": "1.0.0",
+  "description": "A Node.js application to submit URLs from a sitemap to Bing daily.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DomathID/bing-oto.git"
+  },
+  "keywords": [
+    "Bing",
+    "URL Submission",
+    "Sitemap",
+    "Automation"
+  ],
+  "author": "DomathID",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "xml2js": "^0.4.23"
+  }
+}
