@@ -23,7 +23,7 @@ jobs:
 
     - name: Run URL submission
       id: submit-urls
-      run: node index.js ${{ inputs.sitemap_url }}
+      run: node index.js
       env:
         BING_API_KEY: ${{ secrets.BING_API_KEY }}
 
