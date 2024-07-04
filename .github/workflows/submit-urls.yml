@@ -11,7 +11,10 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+      with:
+        persist-credentials: false
+        fetch-depth: 0
 
     - name: Set up Node.js
       uses: actions/setup-node@v2
@@ -27,12 +30,33 @@ jobs:
       env:
         BING_API_KEY: ${{ secrets.BING_API_KEY }}
 
-    - name: Set output
-      id: set-output
-      run: echo "LAST_UPDATED=$(date)" >> $GITHUB_ENV
+    - name: Modify last update
+      run: |
+        d=`date '+%Y-%m-%dT%H:%M:%SZ'`
+        echo $d > LAST_UPDATED
 
-    - name: Create summary
-      run: echo "URLs have been submitted successfully. Last updated: ${{ env.LAST_UPDATED }}" > summary.txt
+    - name: Trust my dir
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-    - name: Display summary
-      run: cat summary.txt
+    - name: Commit changes
+      run: |
+        git config --local user.email "your-email@example.com"
+        git config --local user.name "your-username"
+        git add -A
+        arr[0]="feat: 😂 auto commit"
+        arr[1]="feat: 😱 auto commit"
+        arr[2]="feat: 👿 auto commit"
+        arr[3]="feat: 💩 auto commit"
+        arr[4]="feat: 🙏 auto commit"
+        arr[5]="feat: 🙈 auto commit"
+        arr[6]="feat: 🐐 auto commit"
+        arr[7]="feat: 🚀 auto commit"
+        rand=$[$RANDOM % ${#arr[@]}]
+        git commit -m "${arr[$rand]}"
+
+    - name: GitHub Push
+      uses: ad-m/github-push-action@master
+      with:
+        force: true
+        directory: "."
+        github_token: ${{ secrets.GITHUB_TOKEN }}
