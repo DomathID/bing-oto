@@ -1,7 +1,7 @@
 const axios = require('axios');
 const xml2js = require('xml2js');
 
-const SITEMAP_URL = 'https://yukinoshita.web.id/sitemap.xml';
+const SITEMAP_URL = process.argv[2] || 'https://web.com/sitemap.xml';
 const BING_API_URL = `https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey=${process.env.BING_API_KEY}`;
 const URL_LIMIT = 100;
 
@@ -18,7 +18,7 @@ async function parseSitemap(xml) {
 
 async function submitUrlsToBing(urls) {
     const payload = {
-        siteUrl: 'https://yukinoshita.web.id',
+        siteUrl: new URL(SITEMAP_URL).origin,
         urlList: urls
     };
 
