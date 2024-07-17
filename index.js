@@ -1,44 +1,45 @@
+const fs = require('fs');
+const path = require('path');
 const axios = require('axios');
 const xml2js = require('xml2js');
 
-const SITEMAP_URL = 'https://yukinoshita.web.id/sitemap.xml';  // Gantilah URL sitemap dengan URL yang sesuai
-const BING_API_URL = `https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey=${process.env.BING_API_KEY}`;
-const URL_LIMIT = 100;
+// Baca timestamp dari LAST_UPDATED
+const lastUpdatedFile = path.join(__dirname, 'LAST_UPDATED');
+const lastUpdated = fs.existsSync(lastUpdatedFile) ? fs.readFileSync(lastUpdatedFile, 'utf-8') : null;
 
-async function fetchSitemap() {
-    const response = await axios.get(SITEMAP_URL);
-    return response.data;
-}
+// Fungsi untuk mendapatkan artikel terbaru dari sitemap
+async function getLatestArticlesFromSitemap(sitemapUrl, lastUpdated) {
+    const response = await axios.get(sitemapUrl);
+    const sitemap = await xml2js.parseStringPromise(response.data);
+    const urls = sitemap.urlset.url.map(url => ({
+        loc: url.loc[0],
+        lastmod: url.lastmod ? new Date(url.lastmod[0]) : null
+    }));
 
-async function parseSitemap(xml) {
-    const parser = new xml2js.Parser();
-    const result = await parser.parseStringPromise(xml);
-    return result.urlset.url.map(entry => entry.loc[0]);
-}
-
-async function submitUrlsToBing(urls) {
-    const payload = {
-        siteUrl: new URL(SITEMAP_URL).origin,
-        urlList: urls
-    };
-
-    const response = await axios.post(BING_API_URL, payload);
-    return response.data;
-}
-
-async function main() {
-    try {
-        const xml = await fetchSitemap();
-        const urls = await parseSitemap(xml);
-
-        const urlsToSubmit = urls.slice(0, URL_LIMIT);
-        console.log(`Submitting ${urlsToSubmit.length} URLs to Bing...`);
-
-        const result = await submitUrlsToBing(urlsToSubmit);
-        console.log('Submission Result:', result);
-    } catch (error) {
-        console.error('Error:', error);
+    if (lastUpdated) {
+        const lastUpdatedDate = new Date(lastUpdated);
+        return urls.filter(url => url.lastmod && url.lastmod > lastUpdatedDate);
+    } else {
+        return urls;
     }
 }
 
-main();
+// Fungsi untuk mengirim URL ke Bing
+async function submitUrlToBing(url) {
+    const apiKey = process.env.BING_API_KEY;
+    const response = await axios.post(`https://ssl.bing.com/webmaster/api.svc/json/SubmitUrl?apikey=${apiKey}`, {
+        url
+    });
+    return response.data;
+}
+
+(async () => {
+    const sitemapUrl = 'https://www.yukinoshita.web.id/sitemap.xml';
+    const latestArticles = await getLatestArticlesFromSitemap(sitemapUrl, lastUpdated);
+    let count = 0;
+    for (const article of latestArticles) {
+        if (count >= 100) break;
+        await submitUrlToBing(article.loc);
+        count++;
+    }
+})();
