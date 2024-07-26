@@ -5,7 +5,7 @@ const xml2js = require('xml2js');
 
 // Baca timestamp dari LAST_UPDATED
 const lastUpdatedFile = path.join(__dirname, 'LAST_UPDATED');
-const lastUpdated = fs.existsSync(lastUpdatedFile) ? fs.readFileSync(lastUpdatedFile, 'utf-8') : null;
+const lastUpdated = fs.existsSync(lastUpdatedFile) ? fs.readFileSync(lastUpdatedFile, 'utf-8').trim() : null;
 
 // Fungsi untuk mendapatkan artikel terbaru dari sitemap
 async function getLatestArticlesFromSitemap(sitemapUrl, lastUpdated) {
@@ -34,12 +34,25 @@ async function submitUrlToBing(url) {
 }
 
 (async () => {
-    const sitemapUrl = 'https://www.yukinoshita.web.id/sitemap.xml';
-    const latestArticles = await getLatestArticlesFromSitemap(sitemapUrl, lastUpdated);
-    let count = 0;
-    for (const article of latestArticles) {
-        if (count >= 100) break;
-        await submitUrlToBing(article.loc);
-        count++;
+    try {
+        const sitemapUrl = 'https://www.yukinoshita.web.id/sitemap.xml';
+        const latestArticles = await getLatestArticlesFromSitemap(sitemapUrl, lastUpdated);
+        console.log(`Found ${latestArticles.length} new articles to submit.`);
+
+        let count = 0;
+        for (const article of latestArticles) {
+            if (count >= 100) break;
+            await submitUrlToBing(article.loc);
+            console.log(`Submitted URL: ${article.loc}`);
+            count++;
+        }
+
+        // Perbarui file LAST_UPDATED
+        const now = new Date().toISOString();
+        fs.writeFileSync(lastUpdatedFile, now);
+        console.log(`LAST_UPDATED updated to ${now}`);
+    } catch (error) {
+        console.error('Error occurred:', error);
     }
 })();
+                    
