@@ -30,6 +30,9 @@ jobs:
       env:
         BING_API_KEY: ${{ secrets.BING_API_KEY }}
 
+    - name: Debugging LAST_UPDATED
+      run: cat LAST_UPDATED
+
     - name: Modify last update
       run: |
         d=$(date '+%Y-%m-%dT%H:%M:%SZ')
@@ -40,9 +43,9 @@ jobs:
 
     - name: Commit changes
       run: |
-        git config --local user.email "your-email@example.com"
-        git config --local user.name "your-username"
-        git add -A
+        git config --local user.email "admin@yukinoshita.web.id"
+        git config --local user.name "DomathID"
+        git add LAST_UPDATED
         arr[0]="feat: 😂 auto commit"
         arr[1]="feat: 😱 auto commit"
         arr[2]="feat: 👿 auto commit"
@@ -60,3 +63,4 @@ jobs:
         force: true
         directory: "."
         github_token: ${{ secrets.GITHUB_TOKEN }}
+        
