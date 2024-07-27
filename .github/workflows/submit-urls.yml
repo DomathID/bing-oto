@@ -30,9 +30,6 @@ jobs:
       env:
         BING_API_KEY: ${{ secrets.BING_API_KEY }}
 
-    - name: Debugging LAST_UPDATED
-      run: cat LAST_UPDATED
-
     - name: Modify last update
       run: |
         d=$(date '+%Y-%m-%dT%H:%M:%SZ')
