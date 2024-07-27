@@ -29,35 +29,4 @@ jobs:
       run: node index.js
       env:
         BING_API_KEY: ${{ secrets.BING_API_KEY }}
-
-    - name: Modify last update
-      run: |
-        d=$(date '+%Y-%m-%dT%H:%M:%SZ')
-        echo $d > LAST_UPDATED
-
-    - name: Trust my dir
-      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-    - name: Commit changes
-      run: |
-        git config --local user.email "admin@yukinoshita.web.id"
-        git config --local user.name "DomathID"
-        git add LAST_UPDATED
-        arr[0]="feat: 😂 auto commit"
-        arr[1]="feat: 😱 auto commit"
-        arr[2]="feat: 👿 auto commit"
-        arr[3]="feat: 💩 auto commit"
-        arr[4]="feat: 🙏 auto commit"
-        arr[5]="feat: 🙈 auto commit"
-        arr[6]="feat: 🐐 auto commit"
-        arr[7]="feat: 🚀 auto commit"
-        rand=$((RANDOM % ${#arr[@]}))
-        git commit -m "${arr[$rand]}"
-
-    - name: GitHub Push
-      uses: ad-m/github-push-action@master
-      with:
-        force: true
-        directory: "."
-        github_token: ${{ secrets.GITHUB_TOKEN }}
         
