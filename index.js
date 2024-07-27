@@ -3,25 +3,14 @@ const path = require('path');
 const axios = require('axios');
 const xml2js = require('xml2js');
 
-// Baca timestamp dari LAST_UPDATED
-const lastUpdatedFile = path.join(__dirname, 'LAST_UPDATED');
-const lastUpdated = fs.existsSync(lastUpdatedFile) ? fs.readFileSync(lastUpdatedFile, 'utf-8').trim() : null;
-
 // Fungsi untuk mendapatkan artikel terbaru dari sitemap
-async function getLatestArticlesFromSitemap(sitemapUrl, lastUpdated) {
+async function getLatestArticlesFromSitemap(sitemapUrl) {
     const response = await axios.get(sitemapUrl);
     const sitemap = await xml2js.parseStringPromise(response.data);
-    const urls = sitemap.urlset.url.map(url => ({
+    return sitemap.urlset.url.map(url => ({
         loc: url.loc[0],
         lastmod: url.lastmod ? new Date(url.lastmod[0]) : null
     }));
-
-    if (lastUpdated) {
-        const lastUpdatedDate = new Date(lastUpdated);
-        return urls.filter(url => url.lastmod && url.lastmod > lastUpdatedDate);
-    } else {
-        return urls;
-    }
 }
 
 // Fungsi untuk mengirim URL ke Bing
@@ -36,8 +25,12 @@ async function submitUrlToBing(url) {
 (async () => {
     try {
         const sitemapUrl = 'https://www.yukinoshita.web.id/sitemap.xml';
-        const latestArticles = await getLatestArticlesFromSitemap(sitemapUrl, lastUpdated);
-        console.log(`Found ${latestArticles.length} new articles to submit.`);
+        const latestArticles = await getLatestArticlesFromSitemap(sitemapUrl);
+
+        // Urutkan artikel berdasarkan tanggal pembaruan (jika ada)
+        latestArticles.sort((a, b) => (b.lastmod ? b.lastmod - a.lastmod : 0));
+
+        console.log(`Found ${latestArticles.length} articles to submit.`);
 
         let count = 0;
         for (const article of latestArticles) {
@@ -49,10 +42,10 @@ async function submitUrlToBing(url) {
 
         // Perbarui file LAST_UPDATED
         const now = new Date().toISOString();
+        const lastUpdatedFile = path.join(__dirname, 'LAST_UPDATED');
         fs.writeFileSync(lastUpdatedFile, now);
         console.log(`LAST_UPDATED updated to ${now}`);
     } catch (error) {
         console.error('Error occurred:', error);
     }
 })();
-                    
