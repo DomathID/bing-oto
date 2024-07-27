@@ -10,16 +10,18 @@ async function getArticlesFromSitemap(sitemapUrl) {
     return sitemap.urlset.url.map(url => url.loc[0]);
 }
 
-// Fungsi untuk mengirim URL ke Bing
-async function submitUrlToBing(url) {
+// Fungsi untuk mengirim URL batch ke Bing
+async function submitUrlsToBing(urls) {
     const apiKey = process.env.BING_API_KEY;
+    const siteUrl = 'https://www.yukinoshita.web.id';
     try {
-        const response = await axios.post(`https://ssl.bing.com/webmaster/api.svc/json/SubmitUrl?apikey=${apiKey}`, {
-            url
+        const response = await axios.post(`https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey=${apiKey}`, {
+            siteUrl,
+            urlList: urls
         });
         return response.data;
     } catch (error) {
-        console.error(`Error submitting URL ${url}:`, error.response ? error.response.data : error.message);
+        console.error(`Error submitting URLs:`, error.response ? error.response.data : error.message);
         throw error;
     }
 }
@@ -31,13 +33,9 @@ async function submitUrlToBing(url) {
 
         console.log(`Found ${articles.length} articles in sitemap.`);
 
-        let count = 0;
-        for (const article of articles) {
-            if (count >= 100) break;
-            await submitUrlToBing(article);
-            console.log(`Submitted URL: ${article}`);
-            count++;
-        }
+        const urlsToSubmit = articles.slice(0, 100);
+        await submitUrlsToBing(urlsToSubmit);
+        console.log(`Submitted ${urlsToSubmit.length} URLs to Bing.`);
     } catch (error) {
         console.error('Error occurred:', error);
     }
